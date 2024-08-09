@@ -1,0 +1,173 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Flask App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 400px;
+            margin: 10px;
+
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    
+
+        <h2>Predict with Iris Model</h2>
+        <form id="predict-form">
+            <label for="sepal_length">Sepal Length:</label>
+            <input type="text" id="sepal_length" placeholder="Sepal Length" required />
+
+            <label for="sepal_width">Sepal Width:</label>
+            <input type="text" id="sepal_width" placeholder="Sepal Width" required />
+
+            <label for="petal_length">Petal Length:</label>
+            <input type="text" id="petal_length" placeholder="Petal Length" required />
+
+            <label for="petal_width">Petal Width:</label>
+            <input type="text" id="petal_width" placeholder="Petal Width" required />
+
+            <button type="button" onclick="makePrediction()">Predict</button>
+        </form>
+        <form action="/action" method="get">
+            <button type="submit">Test Accuracy</button>
+        </form>
+        <div id="result"></div>
+    </div>
+    <div class="container">
+
+        <h2>Upload an Image for MINIST Model Prediction</h1>
+        <form id="upload-form" method="post" enctype="multipart/form-data">
+            <label for="file">Select an image:</label>
+            <input type="file" id="file" name="file" accept="image/*" required />
+            <button type="submit">Upload and Predict</button>
+        </form>
+        <form action="/minist_test_accuracy" method="get">
+            <button type="submit">Test Accuracy</button>
+        </form>
+        <div id="result_minist"></div>
+
+    </div>
+    <script>
+        function makePrediction() {
+            var sepalLength = parseFloat(document.getElementById('sepal_length').value);
+            var sepalWidth = parseFloat(document.getElementById('sepal_width').value);
+            var petalLength = parseFloat(document.getElementById('petal_length').value);
+            var petalWidth = parseFloat(document.getElementById('petal_width').value);
+
+            var data = {
+                'features': [sepalLength, sepalWidth, petalLength, petalWidth]
+            };
+
+            fetch('/predict_iris', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.error) {
+                    document.getElementById('result').innerText = 'Error: ' + result.error;
+                    document.getElementById('result').className = 'error';
+                } else {
+                    document.getElementById('result').innerText = 'Prediction: ' + result.prediction;
+                    document.getElementById('result').className = '';
+                }
+            });
+        }
+
+        document.getElementById('upload-form').onsubmit = function(event) {
+            event.preventDefault();  // Prevent the default form submission
+            
+            var formData = new FormData(this);
+            
+            fetch('/predict_minist', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.error) {
+                    document.getElementById('result_minist').innerText = 'Error: ' + result.error;
+                } else {
+                    document.getElementById('result_minist').innerText = 'Prediction: ' + result.prediction;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result_minist').innerText = 'Error: ' + error.message;
+            });
+        };
+    </script>
+</body>
+</html>
+
